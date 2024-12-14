@@ -1,0 +1,68 @@
+<?php
+
+require_once './vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+
+// Configuration de la connexion
+$host = $_ENV['DB_HOST'];
+$user = $_ENV['DB_USER'];
+$password = $_ENV['DB_PASS'];
+$dbName = $_ENV['DB_NAME'];
+
+try {
+    // Connexion initiale au serveur MySQL
+    $pdo = new PDO("mysql:host=$host", $user, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Vérification et création de la base de données si elle n'existe pas
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS $dbName");
+    echo "Base de données '$dbName' créée ou déjà existante.\n";
+
+    // Connexion à la base de données
+    $pdo->exec("USE $dbName");
+
+    // Création des tables
+    $queries = [
+        // Table utilisateurs
+        "CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL
+        )",
+
+        // Table produits
+        "CREATE TABLE IF NOT EXISTS products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            price DECIMAL(10, 2) NOT NULL,
+            image VARCHAR(255) DEFAULT NULL
+        )",
+
+        // Table panier
+        "CREATE TABLE IF NOT EXISTS carts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            product_id INT NOT NULL,
+            quantity INT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )",
+
+        // Insertion des données initiales dans la table produits
+        "INSERT IGNORE INTO products (name, description, price, image) VALUES
+        ('Produit 1', 'Description du produit 1', 10.00, 'image1.jpg'),
+        ('Produit 2', 'Description du produit 2', 20.00, 'image2.jpg'),
+        ('Produit 3', 'Description du produit 3', 30.00, 'image3.jpg')"
+    ];
+
+    foreach ($queries as $query) {
+        $pdo->exec($query);
+    }
+
+    echo "Tables créées avec succès et données initiales insérées.\n";
+} catch (PDOException $e) {
+    echo "Erreur : " . $e->getMessage();
+}
