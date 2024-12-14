@@ -1,0 +1,20 @@
+{
+  "name": "sambeau/shop-le",
+  "description": "Framework e-commerce",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Core\\": "app/Core/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Sambeau",
+      "email": "sambeauprak@gmail.com"
+    }
+  ],
+  "require": {
+    "vlucas/phpdotenv": "^5.6"
+  }
+}
